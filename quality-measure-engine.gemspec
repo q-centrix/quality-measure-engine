@@ -19,7 +19,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'moped', '~> 2.0.0'
   gem.add_dependency 'mongoid', '~> 4.0.0'
-  gem.add_dependency 'rubyzip', '~> 0.9.9'
+  gem.add_dependency 'rubyzip', '>= 1.0.0'
+  gem.add_dependency 'zip-zip' # will load compatibility for old rubyzip API
   gem.add_dependency 'delayed_job_mongoid', '~> 2.1.0'
 
   gem.add_development_dependency "minitest", "~> 5.4.0"
