@@ -39,6 +39,7 @@ module QME
                  'value.sub_id'           => @sub_id,
                  'value.effective_date'   => @parameter_values['effective_date'],
                  'value.test_id'          => @parameter_values['test_id'],
+                 'value.facility_id'      => @parameter_values['facility_id'],
                  'value.manual_exclusion' => {'$in' => [nil, false]}}
 
         if(filters)
@@ -81,6 +82,7 @@ module QME
                  'value.sub_id'           => @sub_id,
                  'value.effective_date'   => @parameter_values['effective_date'],
                  'value.test_id'          => @parameter_values['test_id'],
+                 'value.facility_id'      => @parameter_values['facility_id'],
                  'value.manual_exclusion' => {'$in' => [nil, false]}}
 
         keys = @measure_def.population_ids.keys - [QME::QualityReport::OBSERVATION, "stratification"]
@@ -214,7 +216,11 @@ module QME
                          :reduce => "function(key, values){return values;}",
                          :out => {:reduce => 'patient_cache', :sharded => true},
                          :finalize => measure.finalize_function,
-                         :query => {:medical_record_number => patient_id, :test_id => @parameter_values["test_id"]})
+                         :query => {
+                           :medical_record_number => patient_id,
+                           :test_id => @parameter_values["test_id"],
+                           :facility_id => @parameter_values["facility_id"]
+                         })
         QME::ManualExclusion.apply_manual_exclusions(@measure_id,@sub_id)
 
       end
@@ -229,7 +235,11 @@ module QME
                                   :reduce => "function(key, values){return values;}",
                                   :out => {:inline => true},
                                   :raw => true,
-                                  :query => {:medical_record_number => patient_id, :test_id => @parameter_values["test_id"]})
+                                  :query => {
+                                    :medical_record_number => patient_id,
+                                    :test_id => @parameter_values["test_id"],
+                                    :facility_id => @parameter_values["facility_id"]
+                                   })
 
         raise result['err'] if result['ok']!=1
         result['results'][0]['value']

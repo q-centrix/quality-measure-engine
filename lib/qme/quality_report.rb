@@ -33,6 +33,7 @@ module QME
     field :measure_id, type: String
     field :sub_id, type: String
     field :test_id
+    field :facility_id, type: String
     field :effective_date, type: Integer
     field :filters, type: Hash
     field :prefilter, type: Hash
@@ -78,7 +79,8 @@ module QME
           # recalculate patient_cache value for modified patient
           value = measure['value']
           map = QME::MapReduce::Executor.new(value['measure_id'], value['sub_id'],
-            'effective_date' => value['effective_date'], 'test_id' => value['test_id'])
+            'effective_date' => value['effective_date'], 'test_id' => value['test_id'],
+            'facility_id' => value['facility_id'])
           map.map_record_into_measure_groups(id)
         end
       end
@@ -119,14 +121,14 @@ module QME
     # Determines whether the patient mapping for the quality report has been
     # completed
     def patients_cached?
-      !QME::QualityReport.where({measure_id: self.measure_id,sub_id:self.sub_id, effective_date: self.effective_date, test_id: self.test_id, "status.state" => "completed" }).first.nil?
+      !QME::QualityReport.where({measure_id: self.measure_id,sub_id:self.sub_id, effective_date: self.effective_date, test_id: self.test_id, facility_id: self.facility_id, "status.state" => "completed" }).first.nil?
     end
 
 
      # Determines whether the patient mapping for the quality report has been
     # queued up by another quality report or if it is currently running
     def calculation_queued_or_running?
-      !QME::QualityReport.where({measure_id: self.measure_id,sub_id:self.sub_id, effective_date: self.effective_date, test_id: self.test_id }).nin("status.state" =>["unknown","stagged"]).first.nil?
+      !QME::QualityReport.where({measure_id: self.measure_id,sub_id:self.sub_id, effective_date: self.effective_date, test_id: self.test_id, facility_id: self.facility_id }).nin("status.state" =>["unknown","stagged"]).first.nil?
     end
 
     # Kicks off a background job to calculate the measure
@@ -148,7 +150,7 @@ module QME
         elsif calculation_queued_or_running?
           self.status["state"] = "stagged"
           self.save
-          options.merge!( {measure_id: self.measure_id, sub_id: self.sub_id, effective_date: self.effective_date })
+          options.merge!( {measure_id: self.measure_id, sub_id: self.sub_id, effective_date: self.effective_date, facility_id: self.facility_id })
           Mongoid.default_session["rollup_buffer"].insert(options)
         else
           # queue the job for calculation
@@ -188,6 +190,7 @@ module QME
                'value.sub_id'           => self.sub_id,
                'value.effective_date'   => self.effective_date,
                'value.test_id'          => test_id,
+               'value.facility_id'      => facility_id,
                'value.manual_exclusion' => {'$in' => [nil, false]}}
 
       if(filters)
