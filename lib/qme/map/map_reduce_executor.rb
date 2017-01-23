@@ -35,10 +35,11 @@ module QME
         filters = @parameter_values["filters"]
 
 
-        match = {'value.measure_id' => @measure_id,
+        match = {'value.measure_id'       => @measure_id,
                  'value.sub_id'           => @sub_id,
                  'value.effective_date'   => @parameter_values['effective_date'],
                  'value.test_id'          => @parameter_values['test_id'],
+                 'value.expired_at'       => nil,
                  'value.manual_exclusion' => {'$in' => [nil, false]}}
 
         if(filters)
@@ -90,7 +91,7 @@ module QME
         supplemental_data = Hash[*keys.map{|k| [k,{QME::QualityReport::RACE => {},
                                                    QME::QualityReport::ETHNICITY => {},
                                                    QME::QualityReport::SEX => {},
-                                                   QME::QualityReport::PAYER => {}}]}.flatten]                                      
+                                                   QME::QualityReport::PAYER => {}}]}.flatten]
         keys.each do |pop_id|
           pline = build_query
 
