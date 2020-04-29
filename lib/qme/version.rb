@@ -1,3 +1,3 @@
 module QME
-  VERSION = "4.0.1.qcx"
+  VERSION = "4.0.3.qcx"
 end
